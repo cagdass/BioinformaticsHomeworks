@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-//#define _SUPER_MAGIC_NUMBER 8
+#define _SUPER_MAGIC_NUMBER 8
 #define _MAGICAL_MYSTERY_MASK 0X07
 #define _ALPHABET_SIZE 4
 #define _SIZE 400000000
@@ -27,7 +27,7 @@ int indexer[_SUPER_MAGIC_NUMBER] = { -37, 0, -37, 2, 1, -37, -37, 3};
 //optimizes % 8 to logic and I am too lazy to check.
 //so we need a mask to do same job.
 //which is 0X0007 I think
-int fasthash(char in){ return in&_MAGICAL_MYSTERY_MASK;}
+static inline int fasthash(char in){ return in&_MAGICAL_MYSTERY_MASK;}
 //Yep, it works just fine
 
 
@@ -96,7 +96,7 @@ int BM(size_t dsize, size_t psize){
 		_loc[i]=psize;
 	}
 	for(i=0;i<psize-1;i++){
-		_loc[indexer[fasthash[pattern[i]]]] = psize - i - 1;
+		_loc[indexer[fasthash(pattern[i])]] = psize - i - 1;
 	}
 
 	//Init suffixes here
@@ -127,6 +127,7 @@ int main(int argc, char** argv){
 		return -1;
 	}
 	
+	clock_t begin = clock();
 	FILE* fptr = fopen(argv[1], "r");
 
 
@@ -138,12 +139,22 @@ int main(int argc, char** argv){
 
 	size_t pattern_size = fread(pattern,sizeof(char), _PATTERN_SIZE,fptr) -1;
 		
-	printf( "Buffer is : %s\nSize is %lu\nPattern is: %s\nPattern size is %lu\n",buffer,data_size,pattern, pattern_size);
+	printf( "Size is %lu\nPattern is: %s\nPattern size is %lu\n",data_size,pattern, pattern_size);
 
-	clock_t begin = clock();
-	int index = brute_force(data_size,pattern_size);
+
 	clock_t end = clock();
+
+
 	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+	
+	printf("Time spent for reading data and stuff: %f\n",time_spent);
+	begin = clock();
+	int index = brute_force(data_size,pattern_size);
+
+	end = clock();
+
+	time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+
 
 	printf("With Brute Force, Pattern found at index %d, %f time spent\n", index+1, time_spent);
 
