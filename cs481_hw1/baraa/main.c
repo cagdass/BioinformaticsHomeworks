@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-/* 
+/*
  * File:   main.c
  * Author: baraaorabi
  *
@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdio.h>
+#include <time.h>
 
 char* pattern;
 int pattern_length;
@@ -41,11 +42,35 @@ int main(int argc, char** argv) {
     if (initialize(text_file_path, pattern_file_path) == -1){
         return -1;
     }
-    
+
+    clock_t starts[4];
+    clock_t ends[4];
+    double time_spent;
+
+    starts[0] = clock();
     brute_force();
-    //KNP();
-    //BM();
-    //RK();
+    ends[0] = clock();
+    time_spent = (double)(ends[0] - starts[0]) / CLOCKS_PER_SEC;
+    printf("Runtime: %f\n", time_spent);
+
+    starts[1] = clock();
+    KNP();
+    ends[1] = clock();
+    time_spent = (double)(ends[1] - starts[1]) / CLOCKS_PER_SEC;
+    printf("Runtime: %f\n", time_spent);
+
+    starts[2] = clock();
+    BM();
+    ends[2] = clock();
+    time_spent = (double)(ends[2] - starts[2]) / CLOCKS_PER_SEC;
+    printf("Runtime: %f\n", time_spent);
+
+    starts[3] = clock();
+    // brute_force();
+    RK();
+    ends[3] = clock();
+    time_spent = (double)(ends[3] - starts[3]) / CLOCKS_PER_SEC;
+    printf("Runtime: %f\n", time_spent);
     return (EXIT_SUCCESS);
 }
 
@@ -58,10 +83,10 @@ void RK(){
     q = primes[i];
     int c;
     c = 1;
-    
+
     for (i = 0; i < pattern_length-1; i++)
         c = (c*4)%q;
-    
+
     int Fp, Ft;
     Fp = 0;
     Ft = 0;
@@ -77,17 +102,17 @@ void RK(){
             if (i == pattern_length) {
                 printf("RK found match at: %d\n", j +1);
                 return;
-            }            
+            }
         }
         if(i < text_length - pattern_length){
             Ft = (4*(Ft - baseToNum(text[j])*c)+ baseToNum(text[j + pattern_length])) % q;
             if (Ft < 0) Ft = Ft +q;
         }
-        
+
     }
-    
+
     printf("RK: no match found\n");
-    
+
 }
 
 int baseToNum(char n){
@@ -110,12 +135,12 @@ int baseToNum(char n){
 
 void BM(){
     int* B[4];
-    
+
     B[0] = malloc(sizeof(int)*pattern_length);
     B[1] = malloc(sizeof(int)*pattern_length);
     B[2] = malloc(sizeof(int)*pattern_length);
     B[3] = malloc(sizeof(int)*pattern_length);
-    
+
     switch (pattern[0]){
         case 'A':
             B[0][0] = 0;
@@ -143,7 +168,7 @@ void BM(){
             break;
     }
 
-    
+
     int i;
     for (i = 1; i < pattern_length; i++){
         switch (pattern[i]){
@@ -173,21 +198,21 @@ void BM(){
                 break;
         }
     }
-    
-    
-    
+
+
+
     int* suff;
     suff = malloc(sizeof(int)*pattern_length);
     get_suffixes(pattern, pattern_length, suff);
-    
-    
+
+
     int* bmGs;
     bmGs = malloc(sizeof(int)*pattern_length);
-    
+
     for (i = 0; i < pattern_length; i++){
         bmGs[i] = pattern_length;
     }
-    
+
     int j;
     j = 0;
     for (i = 0; i < pattern_length; ++i)
@@ -202,16 +227,16 @@ void BM(){
             }
         }
     }
-    
+
     for (i = 0; i <= pattern_length - 2; ++i){
-        bmGs[pattern_length - 1 - suff[i]] = pattern_length - 1 - i;   
+        bmGs[pattern_length - 1 - suff[i]] = pattern_length - 1 - i;
     }
-    
-    
+
+
 
     j = 0; i = pattern_length - 1;
-    
-    while (j <= text_length - pattern_length) {        
+
+    while (j <= text_length - pattern_length) {
         for (i = pattern_length - 1; i >= 0 && text[j + i] == pattern[i]; --i) ;
         if (i < 0) {
             printf("BM found match at : %d\n", j+1);
@@ -236,36 +261,36 @@ void BM(){
             j += (bmGs[i] > Bc_shift ? bmGs[i] : bmGs[i] );
         }
     }
-    
+
     printf("BM: No match found\n");
 
-            
+
 }
 
 void get_suffixes(char *x, int m, int *suff) {
     char* x_rev;
     x_rev = malloc(sizeof(char)*m);
-    
+
     int* Z;
     Z = malloc(sizeof(int)*m);
     int i;
     for (i=0;i < m; i++){
         x_rev[i] = x [m-1-i];
     }
-    
-    
+
+
     get_Z(x_rev, m, Z);
-    
+
     for(i = 0; i < m; i++){
         suff[i] = Z[m - 1 - i];;
     }
-    
+
 }
 
 void get_Z(char* x, int m, int *Z) {
     int L, R, k;
-    
-    
+
+
     L = R = 0;
     for (int i = 1; i < m; ++i) {
         if (i > R) {
@@ -295,14 +320,14 @@ void get_Z(char* x, int m, int *Z) {
 
 void KNP(){
     int* F;
-    
+
     F = malloc(sizeof(int)*pattern_length);
     F[0] = 0;
-   
+
     int i,j;
     i = 1;
     j = 0;
-    
+
     while(i < pattern_length){
         if (pattern[i]==pattern[j]){
             F[i] = j+1;
@@ -314,11 +339,11 @@ void KNP(){
             F[i] = 0;
             i++;
         }
-        
+
     }
-    
+
     //for (i = 0; i < pattern_length; i++) printf("%d |", F[i]);
-    
+
     i = 0;
     j = 0;
     int iter;
@@ -331,7 +356,7 @@ void KNP(){
                 j++;
                 i++;
             }
-            
+
         } else {
             if (j>0) {
                 j = F[j-1];
@@ -340,7 +365,7 @@ void KNP(){
             }
         }
     }
-    
+
     printf("KNP: No match found\n");
 }
 
@@ -348,7 +373,7 @@ void brute_force(){
     int i, j;
 
     for(i = 0; i < text_length ; i++){
-        
+
         for (j = 0; j < pattern_length; j++){
             if (text[i + j] != pattern[j])
                 break;
@@ -356,53 +381,53 @@ void brute_force(){
                 printf("Brute Force found a match at: %d\n", i+1);
                 return;
             }
-                
+
         }
-        
+
     }
-    
+
     printf("Brute Force: No match found.\n");
 }
 
 int initialize(char* text_file_path, char* pattern_file_path){
     struct stat st1;
-    
+
     if (stat(text_file_path, &st1) != 0)
         return -1;
     text_length = st1.st_size;
-    
-    
+
+
     if (stat(pattern_file_path, &st1) != 0)
         return -1;
     pattern_length = st1.st_size;
-    
+
     printf("%d : %d\n", text_length, pattern_length);
     FILE* pattern_file;
-    FILE* text_file; 
-    
+    FILE* text_file;
+
     text_file = fopen(text_file_path, "r");
     pattern_file = fopen(pattern_file_path, "r");
 
     text = malloc(text_length);
     pattern = malloc(pattern_length);
-    
-    
+
+
     printf("%d :", (int)fread(text, 1, text_length, text_file));
     printf("%d\n", (int)fread(pattern, 1, pattern_length, pattern_file));
-    
-    
-    
+
+
+
     if (text[text_length-1] < 'A')
         printf("%d\n", --text_length);
     if (pattern[pattern_length-1] < 'A')
         printf("%d\n", --pattern_length);
-    
+
     /*int i;
-    
+
     for(i = 0; i < text_length; i++)
         printf("%c", text[i]);
     printf(".\n");
-            
+
     for(i = 0; i < pattern_length; i++)
         printf("%c", pattern[i]);
     printf(".\n");
